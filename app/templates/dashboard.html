@@ -1,0 +1,487 @@
+{% extends "layout_dashboard.html" %}
+
+{% block content %}
+<!-- Futuristic Command Center Dashboard -->
+
+<style>
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.12);
+    border-color: rgba(139, 92, 246, 0.4);
+  }
+
+  .stat-value {
+    background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+  }
+
+  .neon-glow-sky {
+    filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.5));
+  }
+
+  .neon-glow-emerald {
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+  }
+
+  .neon-glow-rose {
+    filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.5));
+  }
+
+  @keyframes pulse-soft {
+
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    50% {
+      transform: scale(1.05);
+      opacity: 0.8;
+    }
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 3s infinite ease-in-out;
+  }
+</style>
+
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+  <!-- Header Stats Section -->
+  <!-- Header Stats Section -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Total Assets -->
+    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group h-[180px]">
+      <div
+        class="absolute -right-4 -top-4 bg-primary-500/10 w-24 h-24 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all">
+      </div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <div class="p-2 bg-indigo-100 rounded-xl text-indigo-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Fleet</span>
+        </div>
+        <div class="text-3xl stat-value tracking-tighter">{{ total_assets }}</div>
+      </div>
+      <div class="text-[9px] font-bold text-slate-400 mt-2 flex items-center gap-1">
+        <span class="text-emerald-500">+{{ (total_assets * 0.05) | round | int }}</span> vs last month
+      </div>
+    </div>
+
+    <!-- Operational -->
+    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group h-[180px]">
+      <div
+        class="absolute -right-4 -top-4 bg-emerald-500/10 w-24 h-24 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all">
+      </div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <div class="p-2 bg-emerald-100 rounded-xl text-emerald-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Operational Health</span>
+        </div>
+        <div class="text-3xl stat-value tracking-tighter">{{ operational_assets }}</div>
+      </div>
+      <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+        {% set health_percent = (operational_assets / total_assets * 100) if total_assets > 0 else 0 %}
+        <div class="bg-emerald-500 h-full neon-glow-emerald progress-bar" data-progress="{{ health_percent }}"></div>
+      </div>
+    </div>
+
+    <!-- Faulty -->
+    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group h-[180px]">
+      <div
+        class="absolute -right-4 -top-4 bg-rose-500/10 w-24 h-24 rounded-full blur-3xl group-hover:bg-rose-500/20 transition-all">
+      </div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <div class="p-2 bg-rose-100 rounded-xl text-rose-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faults Registered</span>
+        </div>
+        <div class="text-3xl text-rose-600 font-black tracking-tighter">{{ faulty_assets }}</div>
+      </div>
+      <div class="text-[9px] font-bold text-slate-400 mt-2 flex items-center gap-4">
+        <div class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+          CRITICAL ATTENTION
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DI Status (Full Width) -->
+  <div
+    class="glass-card rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between overflow-hidden relative group mt-6">
+    <div
+      class="absolute -right-4 -top-4 bg-sky-500/10 w-32 h-32 rounded-full blur-3xl group-hover:bg-sky-500/20 transition-all">
+    </div>
+
+    <!-- Left: Title & Status -->
+    <div class="flex items-center gap-6 relative z-10 w-full md:w-auto justify-between md:justify-start">
+      <div class="flex items-center gap-3">
+        <div class="p-3 bg-sky-100 rounded-2xl text-sky-600 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 00-2 2z" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Today's Inspection
+            Workflow</span>
+          {% if today_di %}
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-black text-emerald-600 tracking-tight">{{ today_di.status | upper }}</span>
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+          </div>
+          {% else %}
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-black text-amber-500 tracking-tight">PENDING</span>
+            <div class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Mobile Date (visible only on small screens) -->
+      <div class="md:hidden text-[9px] font-black text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">
+        {{ current_date.strftime('%d %b') }}
+      </div>
+    </div>
+
+    <!-- Center: Workflow Flow -->
+    <div class="flex-1 px-8 relative z-10 hidden md:flex items-center justify-center">
+      {% if today_di %}
+      <div class="flex items-center justify-center gap-3">
+        <!-- Submission -->
+        <div
+          class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>Submitted: <span class="text-slate-800">{{ today_di.user.full_name or today_di.user.username if
+              today_di.user else 'Unknown'
+              }}</span></span>
+        </div>
+
+        {% if today_di.status != 'completed' %}
+        <span class="text-slate-300">&rarr;</span>
+
+        <!-- Pending -->
+        <div
+          class="flex items-center gap-2 text-[10px] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50/80 p-2 rounded-lg border border-indigo-100 shadow-sm animate-pulse-soft">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+          <span>Pending With: <span class="text-indigo-700">{{ today_di.forwarded_to }}</span></span>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="text-center">
+        <p class="text-[11px] font-medium text-slate-400 italic">Daily inspection has not been submitted yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right: Action Button -->
+    <div class="relative z-10 shrink-0 mt-4 md:mt-0 w-full md:w-auto flex items-center justify-end gap-4">
+      <div
+        class="hidden md:block text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+        {{ current_date.strftime('%d %B, %Y') }}
+      </div>
+
+      {% if today_di %}
+      <a href="/di/view/{{ today_di.id }}"
+        class="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        Review Log
+      </a>
+      {% else %}
+      <a href="/di/form"
+        class="w-full md:w-auto px-6 py-3 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Start Inspection
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Analytical Charts Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Health Trend Chart -->
+    <div class="lg:col-span-2 glass-card rounded-3xl p-6 flex flex-col h-[320px]">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-black text-slate-800">Fault Incident Trend</h3>
+          <p class="text-[10px] text-slate-500 font-medium italic">Unserviceable assets captured over last 7
+            inspections.</p>
+        </div>
+        <select class="text-[9px] font-bold bg-slate-100 border-none rounded-lg px-3 py-1.5 text-slate-500">
+          <option>LAST 7 DAYS</option>
+          <option>LAST 30 DAYS</option>
+        </select>
+      </div>
+      <div class="flex-1 relative w-full">
+        <canvas id="healthTrendChart" data-labels='{{ fault_trend | map(attribute="date") | list | tojson | safe }}'
+          data-counts='{{ fault_trend | map(attribute="count") | list | tojson | safe }}'></canvas>
+      </div>
+    </div>
+
+    <!-- Distribution by Type -->
+    <div class="glass-card rounded-3xl p-6 flex flex-col h-[320px]">
+      <div class="mb-2">
+        <h3 class="text-lg font-black text-slate-800">Asset Topology</h3>
+        <p class="text-[10px] text-slate-500 font-medium italic">Infrastructure component distribution.</p>
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center min-h-0">
+        <div class="relative h-[160px] w-full flex justify-center">
+          <canvas id="typeDistributionChart" data-labels='{{ distribution_by_type.keys() | list | tojson | safe }}'
+            data-values='{{ distribution_by_type.values() | list | tojson | safe }}'></canvas>
+        </div>
+        <div class="grid grid-cols-2 gap-2 w-full mt-4">
+          {% for type, count in distribution_by_type.items() %}
+          <div class="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-2 h-2 rounded-full chart-legend-color" data-color-index="{{ loop.index0 }}"></div>
+            <div class="flex flex-col">
+              <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter truncate">{{ type }}</span>
+              <span class="text-xs font-black text-slate-700">{{ count }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Details Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Location Vulnerability Bar Chart -->
+    <div class="glass-card rounded-3xl p-6 h-[280px] flex flex-col">
+      <div class="mb-4">
+        <h3 class="text-lg font-black text-slate-800">Operational Density</h3>
+        <p class="text-[10px] text-slate-500 font-medium italic">Asset concentration across facility areas.</p>
+      </div>
+      <div class="flex-1 relative w-full">
+        <canvas id="placeDistributionChart" data-labels='{{ distribution_by_place.keys() | list | tojson | safe }}'
+          data-values='{{ distribution_by_place.values() | list | tojson | safe }}'></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Faults Activity -->
+    <div class="glass-card rounded-3xl p-6 relative overflow-hidden h-[280px] flex flex-col">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 blur-3xl rounded-full"></div>
+      <div class="flex justify-between items-start mb-4 shrink-0">
+        <div>
+          <h3 class="text-lg font-black text-slate-800">Fault Intelligence Log</h3>
+          <p class="text-[10px] text-slate-500 font-medium italic">Most recent unserviceable asset observations.</p>
+        </div>
+        <a href="/di/list"
+          class="text-[9px] font-black text-primary-600 px-3 py-1.5 bg-primary-100 rounded-lg hover:bg-primary-200 transition-all">VIEW
+          ALL</a>
+      </div>
+
+      <div class="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-1">
+        {% if recent_faults %}
+        {% for log, eq_name in recent_faults %}
+        <div
+          class="flex items-start gap-3 p-3 hover:bg-slate-50/80 rounded-xl transition-all group border border-transparent hover:border-slate-100">
+          <div
+            class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center mb-0.5">
+              <span class="text-xs font-black text-slate-800 truncate">{{ eq_name }}</span>
+              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest shrink-0">#{{ log.id }}</span>
+            </div>
+            <p class="text-[10px] text-slate-500 font-medium italic mb-1 line-clamp-1">"{{ log.remarks or 'No remarks
+              provided' }}"</p>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center py-8">
+          <p class="text-xs font-black text-slate-400">NO FAULTS RECORDED</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Dynamic Chart Colors
+    const chartColors = [
+      '#8b5cf6', // Primary
+      '#3b82f6', // blue
+      '#10b981', // emerald
+      '#f59e0b', // amber
+      '#f43f5e', // rose
+      '#0ea5e9'  // sky
+    ];
+
+    // Helper for safe JSON parsing
+    const safeParse = (str) => {
+      try {
+        return JSON.parse(str || '[]');
+      } catch (e) {
+        console.error('Data parsing error:', e, str);
+        return [];
+      }
+    };
+
+    // Set global chart properties
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = "'Inter', sans-serif";
+      Chart.defaults.color = '#94a3b8';
+
+      // 1. Health Trend Chart (Line)
+      const trendCanvas = document.getElementById('healthTrendChart');
+      if (trendCanvas) {
+        new Chart(trendCanvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: safeParse(trendCanvas.dataset.labels),
+            datasets: [{
+              label: 'Faults Detected',
+              data: safeParse(trendCanvas.dataset.counts),
+              borderColor: '#f43f5e',
+              backgroundColor: 'rgba(244, 63, 94, 0.1)',
+              borderWidth: 4,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: '#fff',
+              pointBorderColor: '#f43f5e',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(226, 232, 240, 0.5)', drawBorder: false },
+                ticks: { stepSize: 1, color: '#94a3b8', font: { weight: '800', size: 10 } }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#94a3b8', font: { weight: '800', size: 10 } }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Topology Distribution (Doughnut)
+      const typeCanvas = document.getElementById('typeDistributionChart');
+      if (typeCanvas) {
+        new Chart(typeCanvas.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: safeParse(typeCanvas.dataset.labels),
+            datasets: [{
+              data: safeParse(typeCanvas.dataset.values),
+              backgroundColor: chartColors,
+              borderWidth: 0,
+              hoverOffset: 20
+            }]
+          },
+          options: {
+            responsive: true,
+            cutout: '80%',
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // 3. Place Density (Bar)
+      const placeCanvas = document.getElementById('placeDistributionChart');
+      if (placeCanvas) {
+        new Chart(placeCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: safeParse(placeCanvas.dataset.labels),
+            datasets: [{
+              label: 'Assets',
+              data: safeParse(placeCanvas.dataset.values),
+              backgroundColor: 'rgba(139, 92, 246, 0.6)',
+              hoverBackgroundColor: '#8b5cf6',
+              borderRadius: 12,
+              barThickness: 24
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: {
+                grid: { color: 'rgba(226, 232, 240, 0.5)', drawBorder: false },
+                ticks: { color: '#94a3b8', font: { weight: '800', size: 10 } }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#94a3b8', font: { weight: '800', size: 10 } }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // 4. Progress Bars Initialization
+    document.querySelectorAll('.progress-bar').forEach(el => {
+      const progress = el.getAttribute('data-progress');
+      el.style.width = progress + '%';
+    });
+
+    // 5. CSS Variable update for topology legend
+    document.querySelectorAll('.chart-legend-color').forEach((el) => {
+      const i = el.getAttribute('data-color-index');
+      el.style.backgroundColor = chartColors[i % chartColors.length];
+    });
+  });
+</script>
+
+{% endblock %}

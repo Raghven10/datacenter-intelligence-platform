@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identity Establishment | DC Platform</title>
+  <link rel="stylesheet" href="/static/css/fonts.css">
+  <script src="/static/js/tailwind.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      overflow: hidden;
+      background: #020617;
+    }
+
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('/static/images/datacenter_bg.png');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.6) contrast(1.2);
+      transform: scale(1.1);
+      animation: slowZoom 30s infinite alternate;
+      z-index: -1;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(30, 27, 75, 0) 0%, rgba(2, 6, 23, 0.8) 100%);
+      z-index: 0;
+    }
+
+    @keyframes slowZoom {
+      from {
+        transform: scale(1.1);
+      }
+
+      to {
+        transform: scale(1.2);
+      }
+    }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .input-glass {
+      background: rgba(2, 6, 23, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .input-glass:focus {
+      background: rgba(2, 6, 23, 0.6);
+      border-color: #10b981;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    }
+
+    .typewriter-cursor::after {
+      content: '|';
+      animation: blink 1s infinite;
+      margin-left: 4px;
+      color: #10b981;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .btn-success-gradient {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .btn-success-gradient:hover {
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen p-6">
+
+  <div class="bg-animation"></div>
+  <div class="bg-overlay"></div>
+
+  <div class="z-10 w-full max-w-lg flex flex-col items-center">
+    <!-- Typewriter Title -->
+    <div class="text-center mb-12">
+      <div
+        class="inline-flex items-center justify-center p-3 mb-6 bg-emerald-500/20 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-400" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg>
+      </div>
+      <h1 id="typewriter"
+        class="text-3xl md:text-4xl font-black text-white tracking-tight uppercase leading-none min-h-[1.5em] typewriter-cursor">
+      </h1>
+    </div>
+
+    <!-- Register Card -->
+    <div class="glass-card w-full p-10 rounded-[2.5rem] animate-in fade-in zoom-in duration-700">
+
+      <h2 class="text-xl font-bold text-white mb-2 text-center uppercase tracking-[0.2em] opacity-80">Establish New
+        Identity</h2>
+      <p class="text-slate-400 text-sm text-center mb-10 font-medium italic">Create authorized operator credentials.</p>
+
+      <form method="post" action="/auth/register" class="space-y-6">
+        <div>
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Operator
+            Alias</label>
+          <input name="username" type="text" placeholder="Choose a username" required
+            class="input-glass w-full px-6 py-4 rounded-2xl text-white font-medium outline-none placeholder:text-slate-600">
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Security Access
+            Key</label>
+          <input type="password" name="password" placeholder="Choose a strong password" required
+            class="input-glass w-full px-6 py-4 rounded-2xl text-white font-medium outline-none placeholder:text-slate-600">
+        </div>
+
+        <button type="submit"
+          class="w-full btn-success-gradient text-white py-5 rounded-2xl font-black text-lg uppercase tracking-tight">
+          Request Initialization
+        </button>
+      </form>
+
+      <div class="mt-10 pt-8 border-t border-white/5 text-center">
+        <p class="text-slate-500 text-sm font-medium">
+          Already established?
+          <a href="/login" class="text-emerald-400 font-bold hover:text-emerald-300 transition-colors ml-1">Authenticate
+            Here</a>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Security Footer -->
+    <p class="mt-12 text-[10px] items-center font-bold text-slate-500 uppercase tracking-[0.3em] flex opacity-60">
+      <span class="h-1 w-1 rounded-full bg-emerald-500 mr-2"></span> EXTERNAL ENROLLMENT PROTOCOL v2.0
+    </p>
+  </div>
+
+  <script>
+    const text = "DataCenter Intelligence Platform";
+    let i = 0;
+    const typewriter = document.getElementById("typewriter");
+
+    function typeWriter() {
+      if (i < text.length) {
+        typewriter.textContent += text.charAt(i);
+        i++;
+        setTimeout(typeWriter, 50);
+      }
+    }
+
+    window.onload = typeWriter;
+  </script>
+
+</body>
+
+</html>

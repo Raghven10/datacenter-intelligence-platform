@@ -1,0 +1,165 @@
+{% extends "layout_dashboard.html" %}
+
+{% block content %}
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .audit-badge {
+        font-size: 0.6rem;
+        font-weight: 900;
+        padding: 0.25rem 0.6rem;
+        border-radius: 0.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    .badge-create {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .badge-update {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .badge-delete {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .badge-fetch {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .badge-security {
+        background: #faf5ff;
+        color: #7c3aed;
+    }
+</style>
+
+<div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight">Security Audit Trail</h2>
+            <p class="text-sm text-slate-500 font-medium italic mt-1">Real-time database transaction monitoring &
+                forensics.</p>
+        </div>
+        <div class="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-100 rounded-2xl">
+            <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+            <span class="text-[10px] font-black text-rose-600 uppercase tracking-widest">Live Monitoring Active</span>
+        </div>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="glass-card rounded-[2.5rem] overflow-hidden p-2">
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-slate-50/50">
+                        <th class="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Temporal Marker</th>
+                        <th class="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Operator</th>
+                        <th class="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Action Code</th>
+                        <th class="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Target Entity</th>
+                        <th class="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Transaction Summary</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for log in logs %}
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-black text-slate-700">{{ log.timestamp.strftime('%Y-%m-%d')
+                                    }}</span>
+                                <span class="text-[10px] font-bold text-slate-400">{{ log.timestamp.strftime('%H:%M:%S')
+                                    }} UTC</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 shadow-sm border border-white">
+                                    {{ log.user.username[0]|upper if log.user else 'S' }}
+                                </div>
+                                <span class="text-xs font-bold text-slate-600">{{ log.user.username if log.user else
+                                    'SYSTEM' }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            {% set action_class = 'badge-fetch' %}
+                            {% if log.action == 'CREATE' %}{% set action_class = 'badge-create' %}
+                            {% elif log.action == 'UPDATE' %}{% set action_class = 'badge-update' %}
+                            {% elif log.action == 'DELETE' %}{% set action_class = 'badge-delete' %}
+                            {% elif 'SECURITY' in log.action %}{% set action_class = 'badge-security' %}
+                            {% endif %}
+                            <span class="audit-badge {{ action_class }} uppercase">{{ log.action }}</span>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{
+                                    log.target_table if log.target_table else '--' }}</span>
+                                {% if log.target_id %}
+                                <span class="px-2 py-0.5 bg-slate-100 rounded text-[9px] font-bold text-slate-500">ID:
+                                    {{ log.target_id }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <p class="text-xs font-medium text-slate-500 leading-relaxed">{{ log.description }}</p>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-8 py-16 text-center">
+                            <p class="text-sm font-black text-slate-400 uppercase tracking-widest">Zero Transactional
+                                Records</p>
+                            <p class="text-xs text-slate-300 italic font-medium mt-1">Audit trail is currently
+                                initialized and awaiting telemetry.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if total > per_page %}
+        <div class="px-8 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Telemetry Overview: {{
+                logs|length }} of {{ total }} entries</span>
+            <div class="flex gap-2">
+                {% if page > 1 %}
+                <a href="?page={{ page - 1 }}"
+                    class="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                {% endif %}
+                {% if total > page * per_page %}
+                <a href="?page={{ page + 1 }}"
+                    class="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

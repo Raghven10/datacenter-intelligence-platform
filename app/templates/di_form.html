@@ -1,0 +1,302 @@
+{% extends "layout_dashboard.html" %}
+{% block content %}
+
+<style>
+  /* Print-specific styles - Keep hyper-clean and A4 compatible */
+  @media print {
+    body {
+      background: white !important;
+      font-family: 'Times New Roman', serif !important;
+      font-size: 10pt !important;
+    }
+
+    .no-print {
+      display: none !important;
+    }
+
+    .print-container {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    table {
+      border-collapse: collapse !important;
+      width: 100% !important;
+    }
+
+    th,
+    td {
+      border: 1px solid black !important;
+      padding: 4px !important;
+      color: black !important;
+    }
+
+    .bg-gray-100 {
+      background-color: #f3f4f6 !important;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+
+  /* Modern Screen Styles */
+  .form-container {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .status-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .status-btn:checked+label {
+    transform: scale(1.05);
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .radio-input:checked+.label-s {
+    background-color: #10b981;
+    color: white;
+    border-color: #059669;
+  }
+
+  .radio-input:checked+.label-us {
+    background-color: #f43f5e;
+    color: white;
+    border-color: #e11d48;
+  }
+
+  .radio-input:checked+.label-on {
+    background-color: #0ea5e9;
+    color: white;
+    border-color: #0284c7;
+  }
+
+  .radio-input:checked+.label-off {
+    background-color: #64748b;
+    color: white;
+    border-color: #475569;
+  }
+
+  .input-field {
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+  }
+
+  .input-field:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    background: white;
+  }
+</style>
+
+<div
+  class="print-container form-container p-8 rounded-3xl shadow-xl max-w-5xl mx-auto my-8 border border-slate-200 overflow-hidden">
+
+  <div class="flex justify-between items-start mb-8 no-print">
+    <div>
+      <h2 class="text-3xl font-black text-slate-800 tracking-tight mb-2">Daily Inspection Log</h2>
+      <p class="text-slate-500 font-medium italic">Ensure all technical parameters are logged accurately.</p>
+    </div>
+    <div class="bg-primary-50 px-6 py-3 rounded-2xl border border-primary-100 text-right">
+      <div class="text-[10px] font-bold text-primary-400 uppercase tracking-widest leading-none mb-1">Session ID</div>
+      <div class="text-primary-800 font-black text-lg">DI-{{ range(1000, 9999) | random }}</div>
+    </div>
+  </div>
+
+  <!-- For Print Header -->
+  <div class="hidden print:block text-center border-b-2 border-black pb-4 mb-6">
+    <h1 class="text-2xl font-bold uppercase">Daily Inspection (DI) Report</h1>
+    <p class="text-sm font-bold mt-2">Data Center Operations</p>
+  </div>
+
+  <form method="post" action="/di/form">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
+      <div class="flex flex-col">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Performed By</label>
+        <div class="px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm">
+          {{ user.username }}
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Inspection Date</label>
+        <input type="date" name="inspection_date" value="{{ today }}"
+          class="px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-primary-500 transition-all">
+      </div>
+      <div class="flex flex-col">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Current Status</label>
+        <div
+          class="px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl font-black text-emerald-600 shadow-sm flex items-center">
+          <span class="h-2 w-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+          ACTIVE SESSION
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm mb-8 bg-white">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-indigo-900 text-white rounded-t-2xl">
+            <th class="px-6 py-4 font-bold text-sm tracking-wide uppercase first:rounded-tl-2xl">Equipment Component
+            </th>
+            <th class="px-6 py-4 font-bold text-sm tracking-wide uppercase text-center border-l border-white/10">Health
+              (S/US)</th>
+            <th class="px-6 py-4 font-bold text-sm tracking-wide uppercase text-center border-l border-white/10">Power
+              (ON/OFF)</th>
+            <th
+              class="px-6 py-4 font-bold text-sm tracking-wide uppercase border-l border-white/10 last:rounded-tr-2xl">
+              Metrics & Observations</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for p_id, p in places.items() %}
+          <tr class="bg-violet-50/50">
+            <td colspan="4" class="px-8 py-4">
+              <div class="flex items-center">
+                <span class="h-8 w-1 bg-violet-500 rounded-full mr-4 shadow-sm"></span>
+                <span class="font-black text-violet-900 tracking-tighter text-lg uppercase">{{ p.name }}</span>
+              </div>
+            </td>
+          </tr>
+
+          {% for e in p.equipments %}
+          <tr class="hover:bg-slate-50/80 transition-colors group">
+            <td class="px-8 py-5">
+              <div class="flex flex-col">
+                <span class="font-bold text-slate-800 text-base group-hover:text-primary-700 transition-colors">{{
+                  e.name }}</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ID: #{{ e.id
+                  }}</span>
+              </div>
+            </td>
+
+            <td class="px-6 py-5 border-l border-slate-100">
+              <div class="flex justify-center gap-2">
+                <input type="radio" id="s_{{ e.id }}" name="serviceability_{{ e.id }}" value="S" checked
+                  class="hidden radio-input">
+                <label for="s_{{ e.id }}"
+                  class="label-s px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black cursor-pointer bg-white text-slate-400 hover:border-emerald-300 transition-all status-btn">S</label>
+
+                <input type="radio" id="us_{{ e.id }}" name="serviceability_{{ e.id }}" value="US"
+                  class="hidden radio-input">
+                <label for="us_{{ e.id }}"
+                  class="label-us px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black cursor-pointer bg-white text-slate-400 hover:border-rose-300 transition-all status-btn">US</label>
+              </div>
+            </td>
+
+            <td class="px-6 py-5 border-l border-slate-100">
+              <div class="flex justify-center gap-2">
+                <input type="radio" id="on_{{ e.id }}" name="status_{{ e.id }}" value="ON" checked
+                  class="hidden radio-input">
+                <label for="on_{{ e.id }}"
+                  class="label-on px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black cursor-pointer bg-white text-slate-400 hover:border-sky-300 transition-all status-btn">ON</label>
+
+                <input type="radio" id="off_{{ e.id }}" name="status_{{ e.id }}" value="OFF" class="hidden radio-input">
+                <label for="off_{{ e.id }}"
+                  class="label-off px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black cursor-pointer bg-white text-slate-400 hover:border-slate-400 transition-all status-btn">OFF</label>
+              </div>
+            </td>
+
+            <td class="px-6 py-5 border-l border-slate-100">
+              <div class="flex flex-col gap-3">
+                <input type="text" name="remarks_{{ e.id }}" placeholder="General remarks..."
+                  class="input-field w-full px-4 py-2 text-sm rounded-xl focus:outline-none placeholder:text-slate-300">
+
+                <!-- Extended Metrics Grid -->
+                <div class="grid grid-cols-3 gap-2 no-print">
+                  <div class="relative">
+                    <input type="number" step="0.01" name="pressure_{{ e.id }}" placeholder="PSI"
+                      class="input-field w-full px-3 py-1.5 text-xs rounded-lg focus:outline-none">
+                    <div class="absolute right-2 top-1.5 text-[8px] font-bold text-slate-300 uppercase">PSI</div>
+                  </div>
+                  <div class="relative">
+                    <input type="number" step="0.1" name="temperature_{{ e.id }}" placeholder="°C"
+                      class="input-field w-full px-3 py-1.5 text-xs rounded-lg focus:outline-none">
+                    <div class="absolute right-2 top-1.5 text-[8px] font-bold text-slate-300 uppercase">TEMP</div>
+                  </div>
+                  <div class="relative">
+                    <input type="number" step="1" name="voltage_{{ e.id }}" placeholder="Volts"
+                      class="input-field w-full px-3 py-1.5 text-xs rounded-lg focus:outline-none">
+                    <div class="absolute right-2 top-1.5 text-[8px] font-bold text-slate-300 uppercase">VOLT</div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Submission Footer -->
+    <div class="bg-indigo-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden group">
+      <!-- Decorative circle -->
+      <div
+        class="absolute -right-20 -top-20 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all duration-700">
+      </div>
+
+      <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div>
+          <h4 class="text-xl font-extrabold mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-accent-sky" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            Operational Summary
+          </h4>
+          <textarea name="final_remarks" rows="4" placeholder="Any overall observations or issues to report..."
+            class="w-full bg-white/10 border border-white/20 rounded-2xl p-4 text-white placeholder:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-accent-sky focus:bg-white/15 transition-all text-sm"></textarea>
+        </div>
+
+        <div class="flex flex-col justify-between">
+          <div>
+            <h4 class="text-xl font-extrabold mb-4 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-amber-400" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+              Escalation Path
+            </h4>
+            <div class="relative">
+              <select name="forwarded_to" required
+                class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all font-bold appearance-none cursor-pointer">
+                <optgroup label="Select {{ next_role }}" class="bg-indigo-900">
+                  {% for u in oic_users %}
+                  <option value="{{ u.username }}" class="bg-indigo-900 text-white">{{ u.username }} ({{ next_role }})
+                  </option>
+                  {% endfor %}
+                </optgroup>
+                <optgroup label="General Role" class="bg-indigo-900">
+                  <option value="{{ next_role.lower() }}" class="bg-indigo-900 text-white">Any {{ next_role }}</option>
+                </optgroup>
+              </select>
+              <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-300" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-4 mt-8 no-print">
+            <a href="/dashboard"
+              class="flex-1 px-6 py-4 bg-white/10 text-white rounded-2xl font-bold text-center hover:bg-white/20 transition-all border border-white/10">Discard</a>
+            <button type="submit"
+              class="flex-[2] px-8 py-4 bg-accent-sky text-white rounded-2xl font-black text-lg hover:bg-sky-400 shadow-[0_8px_30px_rgb(14,165,233,0.4)] transition-all hover:-translate-y-1">Submit
+              Inspection Log</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

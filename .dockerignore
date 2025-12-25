@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+server.log
+
+# Database
+*.db
+*.sqlite
+
+# Node
+node_modules/
+
+# Test/Debug scripts
+check_*.py
+verify_*.py
+assign_*.py
+repro_*.py
+init_*.py
+recreate_*.py
+
+# Documentation (will be copied separately)
+*.md
+!README.md
+
+# Build artifacts
+tailwindcss-macos-arm64
+
+# Alembic (migrations handled separately)
+alembic/
+
+# Brain artifacts
+.gemini/

@@ -1,0 +1,252 @@
+{% extends "layout_dashboard.html" %}
+{% block content %}
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+  <div>
+    <h2 class="text-3xl font-black text-slate-800 tracking-tight">Access Tiers</h2>
+    <p class="text-slate-500 font-medium italic">Define and manage security roles for platform authorization.</p>
+  </div>
+  <button onclick="openModal('create-role-modal')"
+    class="bg-primary-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-primary-700 shadow-[0_10px_20px_rgba(139,92,246,0.3)] transition-all flex items-center gap-3 hover:-translate-y-1">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+    </svg>
+    Initialize Role
+  </button>
+</div>
+
+<!-- Search Bar -->
+<div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 mb-8 border border-slate-100">
+  <div class="relative group">
+    <svg xmlns="http://www.w3.org/2000/svg"
+      class="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"
+      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    <form method="get">
+      <input type="text" name="search" value="{{ search }}" placeholder="Filter roles by designation..."
+        class="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary-100 focus:bg-white focus:border-primary-300 transition-all font-bold text-slate-700 placeholder:italic">
+    </form>
+  </div>
+</div>
+
+<div class="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-12">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-100">
+      <thead class="bg-slate-50/80">
+        <tr>
+          <th class="px-8 py-5 text-left text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Protocol
+            ID</th>
+          <th class="px-8 py-5 text-left text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Clearance
+            Designation</th>
+          <th class="px-8 py-5 text-right text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Overrides
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-slate-50 font-medium">
+        {% for role in roles %}
+        <tr class="hover:bg-primary-50/30 transition-all group">
+          <td class="px-8 py-6 whitespace-nowrap">
+            <span class="text-sm font-black text-slate-400">#{{ role.id }}</span>
+          </td>
+          <td class="px-8 py-6 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="h-2 w-2 rounded-full bg-primary-400 mr-3 group-hover:scale-150 transition-transform"></div>
+              <span
+                class="text-sm font-black text-slate-800 group-hover:text-primary-700 transition-colors uppercase tracking-tight">{{
+                role.name }}</span>
+            </div>
+          </td>
+          <td class="px-8 py-6 whitespace-nowrap text-right">
+            <div class="flex justify-end gap-3">
+              <button onclick="openViewModal({{ role.id }}, '{{ role.name }}')"
+                class="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:bg-primary-600 hover:text-white hover:shadow-lg transition-all"
+                title="Inspect Protocol">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+              <button onclick="openEditModal({{ role.id }}, '{{ role.name }}')"
+                class="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:bg-amber-500 hover:text-white hover:shadow-lg transition-all"
+                title="Amend Designation">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <a href="/roles/delete/{{ role.id }}" onclick="return confirm('Archive this role permanently?')"
+                class="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:bg-rose-600 hover:text-white hover:shadow-lg transition-all"
+                title="Destroy Protocol">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if (total // per_page) > 0 %}
+<div class="mt-8 flex justify-center items-center space-x-3 mb-12">
+  {% for p in range(1, (total // per_page) + 2) %}
+  <a href="?page={{ p }}&search={{ search }}"
+    class="px-5 py-2 rounded-xl font-black text-sm transition-all shadow-sm
+    {% if p==page %}bg-primary-600 text-white shadow-primary-200{% else %}bg-white border border-slate-200 text-slate-400 hover:border-primary-300 hover:text-primary-600{% endif %}">
+    {{ p if p >= 10 else "0"+p|string }}
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- MODALS -->
+
+<!-- Create Modal -->
+<div id="create-role-modal"
+  class="hidden fixed inset-0 z-[100] bg-indigo-950/60 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div class="flex justify-between items-start mb-8">
+      <div>
+        <h3 class="text-2xl font-black text-slate-800 tracking-tight">Initialize Role</h3>
+        <p class="text-sm text-slate-500 font-medium italic">Assign a new clearance designation.</p>
+      </div>
+      <button onclick="closeModal('create-role-modal')"
+        class="p-2 bg-slate-100 rounded-xl text-slate-400 hover:text-rose-600 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form method="post" action="/roles/create" class="space-y-6">
+      <div>
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Clearance
+          Designation</label>
+        <input type="text" name="name" placeholder="e.g. SYSTEM_AUDITOR" required
+          class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary-100 focus:bg-white focus:border-primary-300 transition-all font-black text-slate-700 uppercase">
+      </div>
+      <div class="flex justify-end pt-4 gap-4">
+        <button type="button" onclick="closeModal('create-role-modal')"
+          class="px-8 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition-all">Dismiss</button>
+        <button type="submit"
+          class="px-10 py-4 bg-primary-600 text-white rounded-2xl font-black shadow-lg shadow-primary-100 hover:bg-primary-700 transition-all">Submit
+          Protocol</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div id="view-role-modal"
+  class="hidden fixed inset-0 z-[100] bg-indigo-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div class="flex justify-between items-start mb-8">
+      <div>
+        <h3 class="text-2xl font-black text-slate-800 tracking-tight">Protocol Diagnostic</h3>
+        <p class="text-sm text-slate-500 font-medium italic">Role security record verified.</p>
+      </div>
+      <button onclick="closeModal('view-role-modal')"
+        class="p-2 bg-slate-100 rounded-xl text-slate-400 hover:text-rose-600 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-100">
+      <div class="flex items-center justify-between">
+        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Protocol ID</span>
+        <span class="text-sm font-black text-slate-500">SYS-ACC-<span id="view-role-id"></span></span>
+      </div>
+      <div class="flex flex-col border-t border-slate-200 pt-6">
+        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Clearance Label</span>
+        <span class="text-2xl font-black text-slate-800 tracking-tight uppercase" id="view-role-name"></span>
+      </div>
+    </div>
+
+    <div class="mt-10 flex justify-center">
+      <button onclick="closeModal('view-role-modal')"
+        class="px-12 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest">Seal
+        Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-role-modal"
+  class="hidden fixed inset-0 z-[100] bg-indigo-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div class="flex justify-between items-start mb-8">
+      <div>
+        <h3 class="text-2xl font-black text-slate-800 tracking-tight">Amend Designation</h3>
+        <p class="text-sm text-slate-500 font-medium italic">Update platform clearance labels.</p>
+      </div>
+      <button onclick="closeModal('edit-role-modal')"
+        class="p-2 bg-slate-100 rounded-xl text-slate-400 hover:text-rose-600 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form id="edit-role-form" method="post" class="space-y-6">
+      <div>
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">New
+          Designation</label>
+        <input type="text" id="edit-role-name" name="name" required
+          class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary-100 focus:bg-white focus:border-primary-300 transition-all font-black text-slate-700 uppercase">
+      </div>
+      <div class="flex justify-end pt-4 gap-4">
+        <button type="button" onclick="closeModal('edit-role-modal')"
+          class="px-8 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition-all">Dismiss</button>
+        <button type="submit"
+          class="px-10 py-4 bg-amber-500 text-white rounded-2xl font-black shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all">Confirm
+          Change</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openModal(id) {
+    document.getElementById(id).classList.remove("hidden");
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.add("hidden");
+    document.body.style.overflow = 'auto';
+  }
+
+  function openViewModal(id, name) {
+    document.getElementById("view-role-id").innerText = id;
+    document.getElementById("view-role-name").innerText = name;
+    openModal("view-role-modal");
+  }
+
+  function openEditModal(id, name) {
+    document.getElementById("edit-role-name").value = name;
+    document.getElementById("edit-role-form").action = `/roles/edit/${id}`;
+    openModal("edit-role-modal");
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden'));
+      document.body.style.overflow = 'auto';
+    }
+  });
+</script>
+
+{% endblock %}

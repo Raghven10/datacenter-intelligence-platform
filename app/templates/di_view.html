@@ -1,0 +1,407 @@
+{% extends "layout_dashboard.html" %}
+{% block content %}
+
+<style>
+    /* Modern Screen Styles - Similar to di_form.html */
+    .form-container {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .badge-s {
+        background-color: #10b981;
+        color: white;
+    }
+
+    .badge-us {
+        background-color: #f43f5e;
+        color: white;
+    }
+
+    .badge-on {
+        background-color: #0ea5e9;
+        color: white;
+    }
+
+    .badge-off {
+        background-color: #64748b;
+        color: white;
+    }
+
+    .input-display {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        color: #475569;
+    }
+
+    .metric-display {
+        background-color: #ffffff;
+        border: 1px solid #f1f5f9;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<div
+    class="form-container p-8 rounded-3xl shadow-xl max-w-5xl mx-auto my-8 border border-slate-200 overflow-hidden bg-white">
+
+    <div class="flex justify-between items-start mb-8 no-print">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight mb-2">Inspection Preview</h2>
+            <p class="text-slate-500 font-medium italic">Viewing historical log - Read Only Mode</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="/di/print/{{ di.id }}" target="_blank"
+                class="bg-indigo-900 text-white px-6 py-3 rounded-2xl font-black hover:bg-indigo-950 shadow-lg transition-all flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-3a2 2 0 00-2-2H5a2 2 0 00-2 2v3a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print
+            </a>
+            {% if not embed %}
+            <a href="/di/list"
+                class="bg-slate-100 text-slate-600 px-6 py-3 rounded-2xl font-black hover:bg-slate-200 transition-all">Back</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
+        <div class="flex flex-col">
+            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Performed By</label>
+            <div
+                class="px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm flex items-center justify-between">
+                <span>{{ di.user.full_name or di.user.username if di.user else "Unknown" }}</span>
+                {% if di.user and di.user.role %}
+                <span
+                    class="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-md">{{
+                    di.user.role.name }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex flex-col">
+            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Inspection
+                Date</label>
+            <div class="px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm">
+                {{ di.inspection_date }}
+            </div>
+        </div>
+        <div class="flex flex-col">
+            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Current
+                Status</label>
+            <div
+                class="px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl font-black text-emerald-600 shadow-sm flex items-center uppercase">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 mr-2"></span>
+                {{ di.status }}
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm mb-8 bg-white">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-indigo-900 text-white rounded-t-2xl">
+                    <th class="px-6 py-4 font-bold text-sm tracking-wide uppercase">Equipment Component</th>
+                    <th
+                        class="px-6 py-4 font-bold text-sm tracking-wide uppercase text-center border-l border-white/10">
+                        Health</th>
+                    <th
+                        class="px-6 py-4 font-bold text-sm tracking-wide uppercase text-center border-l border-white/10">
+                        Power</th>
+                    <th class="px-6 py-4 font-bold text-sm tracking-wide uppercase border-l border-white/10">
+                        Observations</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for p_id, p in places.items() %}
+                <tr class="bg-violet-50/50">
+                    <td colspan="4" class="px-8 py-4">
+                        <div class="flex items-center">
+                            <span class="h-8 w-1 bg-violet-500 rounded-full mr-4 shadow-sm"></span>
+                            <span class="font-black text-violet-900 tracking-tighter text-lg uppercase">{{ p.name
+                                }}</span>
+                        </div>
+                    </td>
+                </tr>
+
+                {% for e in p.equipments %}
+                <tr class="hover:bg-slate-50/80 transition-colors group">
+                    <td class="px-8 py-5">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-800 text-base">{{ e.name }}</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ID: #{{
+                                e.id }}</span>
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-5 border-l border-slate-100 text-center">
+                        {% if e.log %}
+                        <span
+                            class="status-badge {% if e.log.serviceability == 'S' %}badge-s{% else %}badge-us{% endif %}">
+                            {{ e.log.serviceability }}
+                        </span>
+                        {% else %}
+                        <span class="text-slate-300 italic">-</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-5 border-l border-slate-100 text-center">
+                        {% if e.log %}
+                        <span class="status-badge {% if e.log.status == 'ON' %}badge-on{% else %}badge-off{% endif %}">
+                            {{ e.log.status }}
+                        </span>
+                        {% else %}
+                        <span class="text-slate-300 italic">-</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-5 border-l border-slate-100">
+                        {% if e.log %}
+                        <div class="flex flex-col gap-2">
+                            {% if e.log.remarks %}
+                            <p class="text-sm text-slate-600 italic">"{{ e.log.remarks }}"</p>
+                            {% endif %}
+
+                            <div class="grid grid-cols-2 gap-2">
+                                {% if e.log.pressure %}<div class="metric-display">PSI: {{ e.log.pressure }}</div>{%
+                                endif %}
+                                {% if e.log.temperature %}<div class="metric-display">TEMP: {{ e.log.temperature }}°C
+                                </div>{% endif %}
+                                {% if e.log.humidity %}<div class="metric-display">HUM: {{ e.log.humidity }}%</div>{%
+                                endif %}
+                                {% if e.log.voltage %}<div class="metric-display">VOLT: {{ e.log.voltage }}V</div>{%
+                                endif %}
+                                {% if e.log.frequency %}<div class="metric-display">FREQ: {{ e.log.frequency }}Hz</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <span class="text-slate-300 italic text-sm">No log entry for this component</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-indigo-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div>
+                <h4 class="text-xl font-extrabold mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-accent-sky" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    Final Remarks
+                </h4>
+                <div class="bg-white/10 border border-white/20 rounded-2xl p-6 text-indigo-100 text-sm leading-relaxed">
+                    {{ di.final_remarks if di.final_remarks else "No final remarks provided." }}
+                </div>
+            </div>
+            <div>
+                <h4 class="text-xl font-extrabold mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-amber-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Forwarded To
+                </h4>
+                <div class="bg-indigo-800/50 border border-white/10 rounded-2xl p-6 flex items-center gap-4">
+                    <div
+                        class="h-12 w-12 bg-amber-400 rounded-full flex items-center justify-center text-indigo-900 font-black">
+                        {{ di.forwarded_to[0].upper() if di.forwarded_to else "?" }}
+                    </div>
+                    <div>
+                        <p class="font-black text-lg leading-tight">{{ di.forwarded_to }}</p>
+                        <p class="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Workflow Target</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if di.workflow %}
+    <div class="mt-8 border-t border-slate-100 pt-8">
+        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Workflow Audit Log
+        </h3>
+        <div class="space-y-4">
+            {% for wf in di.workflow %}
+            <div class="flex items-start gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-100">
+                <div
+                    class="mt-1 h-3 w-3 rounded-full {% if wf.action == 'approved' %}bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]{% else %}bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]{% endif %}">
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start mb-1">
+                        <p class="font-black text-slate-800 uppercase tracking-tight text-sm">Action: {{ wf.action }}
+                        </p>
+                        <span class="text-[10px] font-bold text-slate-400">{{ wf.acted_at.strftime('%d %b %Y, %H:%M')
+                            }}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium mb-3">By: <span class="text-slate-700 font-bold">{{
+                            wf.acted_by }}</span> ({{ wf.from_role }}) &rarr; Forwarded to: <span class="italic">{{
+                            wf.to_role }}</span></p>
+                    {% if wf.comments %}
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-600 italic">
+                        "{{ wf.comments }}"
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ACTION SECTION -->
+    {% if can_act %}
+    <div class="mt-12 p-10 border-4 border-dashed border-indigo-100 rounded-[3rem] bg-indigo-50/30">
+        <div class="flex items-center gap-4 mb-8">
+            <div
+                class="h-16 w-16 bg-indigo-600 rounded-2xl rotate-3 flex items-center justify-center shadow-xl shadow-indigo-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white -rotate-3" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-2xl font-black text-indigo-900 leading-none">Review Action Required</h3>
+                <p class="text-indigo-400 font-bold text-xs uppercase tracking-widest mt-1">Authorized personnel only
+                </p>
+            </div>
+        </div>
+
+        <form action="/di/workflow/approve/{{ di.id }}" method="POST" class="space-y-8">
+            <div>
+                <label
+                    class="block text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3 ml-1">Official
+                    Observations</label>
+                <textarea name="comments" rows="4" required
+                    placeholder="Describe your findings or notes on this inspection..."
+                    class="w-full px-6 py-5 rounded-[2rem] border-2 border-indigo-50 bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm shadow-sm placeholder:text-slate-300"></textarea>
+            </div>
+
+            {% if next_role and next_role != 'COMPLETED' %}
+            <div class="relative">
+                <label
+                    class="block text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3 ml-1">Escalate
+                    Path & Assignment</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="relative">
+                        <select name="escalate_to" required
+                            class="w-full px-6 py-5 rounded-3xl border-2 border-indigo-50 bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 appearance-none text-sm font-black text-indigo-900 cursor-pointer shadow-sm">
+                            <optgroup label="Direct Personnel (Recommended)">
+                                {% for u in next_users %}
+                                <option value="{{ u.username }}">{{ u.username }} ({{ next_role }})</option>
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Floating Assignment">
+                                <option value="{{ next_role.lower() }}">Any Member of {{ next_role }}</option>
+                            </optgroup>
+                        </select>
+                        <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="bg-amber-50 border-2 border-amber-100 rounded-3xl p-5 flex items-start gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 shrink-0 mt-0.5"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-[10px] text-amber-700 font-bold leading-relaxed uppercase">Selecting a direct
+                            personnel will notify them immediately. General roles are visible to everyone in that level.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="flex flex-col md:flex-row gap-4 pt-4">
+                <button type="submit"
+                    class="flex-[2] bg-indigo-600 text-white font-black py-5 rounded-[2rem] hover:bg-indigo-700 transition-all shadow-[0_15px_35px_rgba(79,70,229,0.3)] uppercase tracking-[0.2em] text-xs hover:-translate-y-1 active:translate-y-0">
+                    {% if next_role == 'COMPLETED' %}Authorize & Finish DI Cycle{% else %}Seal Observations & Escalate{%
+                    endif %}
+                </button>
+
+                <button type="button"
+                    onclick="const f = document.getElementById('reject-form'); f.classList.remove('hidden'); f.scrollIntoView({behavior: 'smooth'})"
+                    class="flex-1 px-8 py-5 bg-white text-rose-500 font-black rounded-[2rem] border-2 border-rose-50 hover:bg-rose-50 transition-all uppercase tracking-[0.2em] text-xs hover:border-rose-200">
+                    Flag Inconsistency
+                </button>
+            </div>
+        </form>
+
+        <!-- Detailed Reject Form -->
+        <div id="reject-form"
+            class="hidden mt-12 bg-white rounded-[2.5rem] p-8 border-2 border-rose-100 shadow-xl shadow-rose-200/20 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-10 w-10 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h4 class="text-lg font-black text-rose-900 uppercase tracking-tight">Rejection Protocol</h4>
+            </div>
+            <form action="/di/workflow/reject/{{ di.id }}" method="POST" class="space-y-6">
+                <textarea name="comments" rows="3" required placeholder="Specify exactly what needs correction..."
+                    class="w-full px-6 py-5 rounded-3xl border-2 border-rose-50 bg-rose-50/20 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-400 transition-all text-sm"></textarea>
+                <div class="flex gap-4">
+                    <button type="submit"
+                        class="flex-1 bg-rose-600 text-white font-black py-4 rounded-2xl hover:bg-rose-700 transition-all uppercase tracking-widest text-[10px]">
+                        Confirm Correction Request
+                    </button>
+                    <button type="button" onclick="document.getElementById('reject-form').classList.add('hidden')"
+                        class="px-6 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl hover:bg-slate-200 transition-all text-[10px] uppercase">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DI Report - {{ di.inspection_date }}</title>
+
+    <!-- Local Assets similar to dashboard layout -->
+    <link rel="stylesheet" href="/static/css/fonts.css">
+    <script src="/static/js/tailwind.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Shared styles with di_form.html - Optimized for Print */
+        @media print {
+            body {
+                background: white !important;
+                font-family: 'Times New Roman', Times, serif !important;
+                font-size: 10pt !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-container {
+                width: 100% !important;
+                max-width: 210mm !important;
+                margin: 0 auto !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                font-size: 10pt !important;
+            }
+
+            th,
+            td {
+                border: 1px solid black !important;
+                padding: 4px !important;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+        }
+
+        .form-table th,
+        .form-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            vertical-align: middle;
+        }
+
+        .form-table th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen p-8">
+
+    <div class="print-container bg-white p-8 rounded shadow-md max-w-4xl mx-auto my-8">
+        <div class="no-print mb-4 flex justify-between">
+            <button onclick="window.location.href='/di/list'"
+                class="text-blue-600 hover:underline cursor-pointer">&larr; Back to List</button>
+            <button onclick="window.print()"
+                class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 cursor-pointer">
+                Print Form
+            </button>
+        </div>
+
+        <div class="form-header">
+            <h2 class="text-2xl font-bold underline mb-4 uppercase">DAILY INSPECTION REPORT</h2>
+            <div class="flex justify-between items-end border-b pb-2 mb-4 text-sm font-bold">
+                <div>
+                    DI Done BY: <span class="font-normal">{{ di.user.full_name or di.user.username if di.user else
+                        "Unknown" }} {{ "(" +
+                        di.user.role.name + ")" if di.user and di.user.role else "" }}</span>
+                </div>
+                <div class="flex gap-4">
+                    <div>Date: <span class="font-normal">{{ di.inspection_date }}</span></div>
+                    <div>Time: <span class="font-normal">{{ di.created_at.strftime('%H:%M') }}</span></div>
+                </div>
+            </div>
+        </div>
+
+        <table class="form-table w-full mb-6 text-sm">
+            <thead>
+                <tr>
+                    <th class="w-1/4">Name</th>
+                    <th class="w-24">S/US</th>
+                    <th class="w-24">On/OFF</th>
+                    <th>Remarks / Parameters</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for place_id, p in places.items() %}
+                <tr class="bg-gray-100">
+                    <td colspan="4" class="font-bold text-center uppercase border-t-2 border-black">{{ p.name }}</td>
+                </tr>
+
+                {% for e in p.equipments %}
+                <tr>
+                    <td class="font-semibold">{{ e.name }}</td>
+                    <td class="text-center">{{ e.log.serviceability if e.log else "-" }}</td>
+                    <td class="text-center">{{ e.log.status if e.log else "-" }}</td>
+                    <td>
+                        <div class="flex flex-col gap-1">
+                            {% if e.log %}
+                            {% if e.log.remarks %}
+                            <div>{{ e.log.remarks }}</div>
+                            {% endif %}
+
+                            {% if e.log.pressure or e.log.temperature or e.log.humidity %}
+                            <div class="text-xs text-gray-600 grid grid-cols-2 gap-x-4">
+                                {% if e.log.pressure %}<span>Pressure: {{ e.log.pressure }}</span>{% endif %}
+                                {% if e.log.temperature %}<span>Temp: {{ e.log.temperature }}°C</span>{% endif %}
+                                {% if e.log.humidity %}<span>Humidity: {{ e.log.humidity }}%</span>{% endif %}
+                                {% if e.log.voltage %}<span>Volt: {{ e.log.voltage }}</span>{% endif %}
+                                {% if e.log.frequency %}<span>Freq: {{ e.log.frequency }}</span>{% endif %}
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-gray-400 italic">No entry</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <table class="form-table w-full text-sm mb-6">
+            <tr>
+                <td class="w-1/3 font-bold">Final Remarks</td>
+                <td colspan="3">
+                    {{ di.final_remarks if di.final_remarks else "No remarks" }}
+                </td>
+            </tr>
+            <tr>
+                <td class="font-bold">Forwarded To</td>
+                <td colspan="3">
+                    {{ di.forwarded_to if di.forwarded_to else "Not forwarded" }}
+                </td>
+            </tr>
+        </table>
+
+        {% if di.workflow %}
+        <div class="mt-8 border-t pt-4">
+            <h4 class="font-bold mb-2 uppercase text-sm">Workflow History</h4>
+            <table class="form-table w-full text-xs">
+                <thead>
+                    <tr>
+                        <th>Date/Time</th>
+                        <th>Action</th>
+                        <th>By User</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for wf in di.workflow %}
+                    <tr>
+                        <td>{{ wf.acted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="uppercase font-bold">{{ wf.action }}</td>
+                        <td>{{ wf.user.full_name or wf.user.username if wf.user else wf.acted_by }}</td>
+                        <td>{{ wf.comments }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="mt-20 flex justify-between">
+            <div class="text-center">
+                <div class="border-t border-black w-48 mb-2"></div>
+                <p class="text-sm font-bold">Inspected By</p>
+                <p class="text-xs italic">{{ di.user.full_name or di.user.username if di.user else "Creator" }}</p>
+            </div>
+            <div class="text-center">
+                <div class="border-t border-black w-48 mb-2"></div>
+                <p class="text-sm font-bold">Verified By</p>
+                <p class="text-xs italic">{{ di.forwarded_to }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Optional: Auto print if opened in an iframe for printing
+        // window.onload = function() {
+        //    if (window.parent !== window) {
+        //        window.print();
+        //    }
+        // }
+    </script>
+</body>
+
+</html>

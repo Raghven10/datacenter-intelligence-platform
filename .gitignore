@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+server.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
+app/static/profile_pics/*
+!app/static/profile_pics/.gitkeep
+
+# Node
+node_modules/
+package-lock.json
+
+# Build artifacts
+tailwindcss-macos-arm64
+*.exe
+
+# Test/Debug scripts
+check_*.py
+verify_*.py
+assign_*.py
+repro_*.py
+init_*.py
+recreate_*.py
+
+# Alembic
+alembic/versions/*.pyc
