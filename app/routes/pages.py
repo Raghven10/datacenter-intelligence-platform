@@ -104,17 +104,14 @@ def settings(request: Request, user: User = Depends(require_user)):
 
 @router.get("/user_manual")
 def user_manual(request: Request):
-    manual_path = "user_manual.md"
-    if not os.path.exists(manual_path):
+    # Use absolute path that works in both local and Docker
+    manual_path = Path(__file__).parent.parent.parent / "user_manual.md"
+    
+    if not manual_path.exists():
         return HTMLResponse("Manual not found.", status_code=404)
     
     with open(manual_path, "r") as f:
         text = f.read()
-        # Convert local file paths to something the browser can show if needed, 
-        # but since they are absolute paths starting with file://, they might work 
-        # but browsers block file:// for security.
-        # I should serve these images via a static route if possible.
-        # However, the user asked to save it in root and link it.
         html_content = markdown.markdown(text, extensions=['fenced_code', 'tables'])
         
     return templates.TemplateResponse("user_manual.html", {

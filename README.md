@@ -41,8 +41,16 @@ A comprehensive web-based Daily Inspection management system for datacenter oper
    ```
 
 3. **Start the application**
+   
+   **Option A: Full stack (PostgreSQL + Redis + App)**
    ```bash
    docker-compose up -d
+   ```
+   
+   **Option B: App only (use existing local PostgreSQL & Redis)**
+   ```bash
+   # Ensure your local PostgreSQL and Redis are running
+   docker-compose -f docker-compose.local.yml up -d
    ```
 
 4. **Access the application**

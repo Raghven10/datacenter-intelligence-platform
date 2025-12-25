@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Application only - connects to host's PostgreSQL and Redis
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: di_app
+    environment:
+      # Database - Connect to host machine's PostgreSQL
+      POSTGRES_HOST: host.docker.internal
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-datacenter_db}
+
+      # Redis - Connect to host machine's Redis
+      REDIS_URL: redis://host.docker.internal:6379/0
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: ${ALGORITHM:-HS256}
+
+      # Application
+      APP_ENV: ${APP_ENV:-production}
+      DEBUG: ${DEBUG:-False}
+      PORT: ${PORT:-8000}
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      - ./app/static/profile_pics:/app/app/static/profile_pics
+    restart: unless-stopped
+    # Use host network mode for easier access to host services (alternative approach)
+    # network_mode: "host"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

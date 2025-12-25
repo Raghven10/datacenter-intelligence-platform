@@ -51,6 +51,7 @@ recreate_*.py
 # Documentation (will be copied separately)
 *.md
 !README.md
+!user_manual.md
 
 # Build artifacts
 tailwindcss-macos-arm64
